@@ -218,19 +218,22 @@ break;
 		
 		$prodCats = get_the_terms(get_the_ID(), 'product_cat');
 		
+
+		
                 $prodCat = null;
                 foreach ($prodCats as $cat) {
                     $prodCat = $cat;
                     break;
                 }				
                 $topCat = null;
-                
-
-
-
+               
+				if(count($prodCats)>=2){
+				$sub=$prodCats['1']->name;
+				}else{
+					$sub='';
+				}
 				if ($prodCat) {
-                    $topCat = get_term_by('id', $prodCat->parent, 'product_cat');
-					//var_dump($topCat);
+                    $topCat = get_term_by('name', $prodCat->name, 'product_cat');
                 }
                 
                     $defaultFeatures = get_option('exam_features');
@@ -240,8 +243,8 @@ break;
 						}else{
 							$defaultFeatures = str_replace("{%V-name%}", '', $defaultFeatures);
 						}
-                    if ($topCat)
-                     $defaultFeatures = str_replace("{%Cert-name%}", $prodCat->name, $defaultFeatures);
+                    if ($topCat)					
+                    $defaultFeatures = str_replace("{%Cert-name%}", $sub, $defaultFeatures);
                     $defaultFeatures = str_replace("{%Exam code%}", get_the_title(), $defaultFeatures);
                     $defaultFeatures = str_replace("{%Exam-name%}", get_post_meta(get_the_ID(), 'exam_full_name', true), $defaultFeatures);
                                  
@@ -260,7 +263,7 @@ break;
 						}
 					}
                     if ($topCat)
-                    $defaultDesc = str_replace("{%Cert-name%}", $prodCat->name, $defaultDesc);
+                    $defaultDesc = str_replace("{%Cert-name%}", $sub, $defaultDesc);
                     $defaultDesc = str_replace("{%Exam code%}", get_the_title(), $defaultDesc);
                     $defaultDesc = str_replace("{%Exam-name%}", get_post_meta(get_the_ID(), 'exam_full_name', true), $defaultDesc);
 
@@ -288,3 +291,23 @@ function rmg_woocommerce_default_product_tabs($tabs) {
     return $tabs;
 }
 add_filter( 'woocommerce_product_tabs', 'rmg_woocommerce_default_product_tabs' );
+
+
+
+
+function wpse_view_cart_store() {
+global $product;
+$id = $product->get_id();
+$files = $product->get_files($id);
+$i=0;
+foreach( $files as $key=>$file ) {
+$i++;
+if($i===1){
+$output .= '&nbsp;&nbsp;&nbsp;<a class="single_add_to_cart_button button alt site " href="' . $file['file'] . '" download="proposed_file_name"><i class="fa fa-download"></i> '. $file['name'].'</a>';
+break;
+}
+
+}
+echo $output;
+}
+add_action( 'woocommerce_after_add_to_cart_button', 'wpse_view_cart_store' );
