@@ -8,7 +8,10 @@ Plugin Name: woocommerce Default content
 Plugin URI: http://webspreed.com/
 Description: Default Unique Content plugin will over right product description if it's empty..
 Version: 1.7.2
+Requires PHP:      7.2
+Author:   Shakil Hossain
 Author URI: http://webspreed.com/
+License:           GPL v2 or later
 */
 
 if (is_admin()) {
@@ -48,6 +51,7 @@ function default_content_function() {
                             ?>
                         </td>
                     </tr>
+					<!--
                     <tr>
                         <td>Vendor meta title</td>
                         <td>
@@ -77,7 +81,7 @@ function default_content_function() {
 
                         </td>
                     </tr>
-                    <tr>
+                    --><tr>
                         <td colspan="2"><hr/></td>
                     </tr>
                     <tr>
@@ -89,7 +93,7 @@ function default_content_function() {
                             ?>
                         </td>
                     </tr>
-                    <tr>
+                    <!--<tr>
                         <td>Certificate meta title</td>
                         <td>
                             <?php
@@ -118,7 +122,7 @@ function default_content_function() {
 
                         </td>
                     </tr>
-                    <tr>
+                    --><tr>
                         <td colspan="2"><hr/></td>
                     </tr>
                     <tr>
@@ -139,7 +143,7 @@ function default_content_function() {
                             ?>
                         </td>
                     </tr>
-                    <tr>
+                 <!--   <tr>
                         <td>Exam meta title</td>
                         <td>
                             <?php
@@ -168,10 +172,10 @@ function default_content_function() {
 
                         </td>
                     </tr>
-                    <tr>
+                    --><tr>
                         <td colspan="2"><hr/></td>
                     </tr>
-                    <tr>
+                    <!--<tr>
                         <td>Exam demo link title</td>
                         <td>
                             <?php
@@ -180,7 +184,7 @@ function default_content_function() {
                             <input type="text" style="width: 100%;" value="<?php echo $contentValue; ?>" name="exam_demo_link_title" />
 
                         </td>
-                    </tr>
+                    </tr>-->
                 </tbody>
             </table>
             <input type="hidden" name="action" value="update" />
@@ -293,21 +297,36 @@ function rmg_woocommerce_default_product_tabs($tabs) {
 add_filter( 'woocommerce_product_tabs', 'rmg_woocommerce_default_product_tabs' );
 
 
-
-
 function wpse_view_cart_store() {
+    $output="";
 global $product;
 $id = $product->get_id();
-$files = $product->get_files($id);
-$i=0;
-foreach( $files as $key=>$file ) {
-$i++;
-if($i===1){
-$output .= '&nbsp;&nbsp;&nbsp;<a class="single_add_to_cart_button button alt site " href="' . $file['file'] . '" download="proposed_file_name"><i class="fa fa-download"></i> '. $file['name'].'</a>';
-break;
-}
+$files = $product->get_downloads($id);
+$downloads = $product->get_downloads();
 
+foreach( $downloads as $key => $each_download ) {
+	if($each_download["name"]=="Dummy")
+  	echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="single_add_to_cart_button button alt site " style="margin-left: 20px;" href="' . $each_download['file'] . '" download="proposed_file_name">&#10148; Download Demo</a>';
 }
-echo $output;
 }
 add_action( 'woocommerce_after_add_to_cart_button', 'wpse_view_cart_store' );
+
+
+function so_31423071_remove_archive_description(){
+    remove_action( 'woocommerce_archive_description', 'woocommerce_taxonomy_archive_description' );
+    remove_action( 'woocommerce_archive_description', 'woocommerce_product_archive_description' );
+    if ( !is_product() ){
+		if (get_query_var('term')){
+			$catObject = get_term_by('slug', get_query_var('term'), 'product_cat');
+		}
+		if($catObject->description){
+			echo $catObject->description;
+		}else{
+			$defaultDesc = get_option('vendor_description');
+			$defaultDesc = str_replace('[recent_exams]', do_shortcode('[recent_exams]'), $defaultDesc);
+			echo str_replace("{%V-name%}", $catObject->name, $defaultDesc);
+        }
+    }
+
+}
+add_action( 'woocommerce_before_main_content', 'so_31423071_remove_archive_description' );
